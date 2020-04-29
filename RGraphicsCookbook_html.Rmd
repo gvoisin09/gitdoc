@@ -1,0 +1,2081 @@
+---
+title: "GraphiquesRCookbook Extraits"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+
+# Ch 2  Graphiques de base
+  
+## 2.1 Nuages de points
+  
+```{r}
+plot(mtcars$wt,mtcars$mpg)
+library(ggplot2)
+qplot(wt,mpg,data=mtcars)
+ggplot(mtcars,aes(x=wt,y=mpg))+geom_point()
+
+```
+
+## 2.2 Plot en ligne
+
+```{r}
+plot(pressure$temperature,pressure$pressure,type="l")
+points(pressure$temperature,pressure$pressure)
+lines(pressure$temperature,pressure$pressure/2,col="red")
+points(pressure$temperature,pressure$pressure/2,col="red")
+library(ggplot2)
+qplot(pressure$temperature,pressure$pressure,geom=c("line","point"))
+ggplot(pressure,aes(x=temperature,y=pressure))+geom_line()+geom_point()
+```
+
+## 2.3 Graphique en barres
+
+```{r}
+
+table(mtcars$cyl)
+barplot(table(mtcars$cyl))
+library(ggplot2)
+qplot(mtcars$cyl)
+qplot(factor(mtcars$cyl))
+qplot(factor(cyl),data=mtcars)
+ggplot(mtcars,aes(x=factor(cyl)))+geom_bar()
+```
+
+## 2.4 Histogramme
+
+```{r}
+hist(mtcars$mpg)
+hist(mtcars$mpg,breaks=10)
+library(ggplot2)
+qplot(mpg,data=mtcars,binwidth=4)
+ggplot(mtcars,aes(x=mpg))+geom_histogram(binwidth=4)
+```
+
+## 2.5 Boxplot
+
+```{r}
+str(ToothGrowth)
+head(ToothGrowth)
+summary(ToothGrowth)
+table(ToothGrowth$dose)
+table(ToothGrowth$supp)
+boxplot(len~supp,data=ToothGrowth)
+boxplot(len~supp+dose,data=ToothGrowth)
+boxplot(len~supp+dose,data=ToothGrowth)
+library(ggplot2)
+ggplot(ToothGrowth,aes(x=supp,y=len))+geom_boxplot()
+ggplot(ToothGrowth,aes(x=interaction(supp,dose),y=len))+geom_boxplot()
+```
+
+## 2.6  Tracé de fonctions
+
+```{r}
+curve(x^3-5*x,from=-4, to=4)
+myfun<-function(xvar){
+  1/(1+ exp(-xvar + 10))
+}
+curve(myfun(x),from = 0, to = 20)
+curve(1 - myfun(x),add=TRUE,col="red")
+library(ggplot2)
+ggplot(data.frame(x=c(0,20)),aes(x = x)) + stat_function(fun=myfun, geom="line")
+```
+
+# Ch 3 - Graphiques en barre
+
+
+## 3.1 Graphique en barre de base  geom_col()
+
+```{r}
+
+library(gcookbook)
+ggplot(pg_mean,aes(x=group,y=weight)) + geom_col()
+ggplot(BOD,aes(x=Time,y=demand))+ geom_col()
+ggplot(BOD,aes(x=factor(Time),y=demand))+ geom_col()
+ggplot(pg_mean,aes(x=group,y=weight)) + geom_col(fill="lightblue",colour="black")
+```
+
+## 3.2 Regroupement des barres
+
+```{r}
+library(gcookbook)
+cabbage_exp
+ggplot(cabbage_exp,aes(x=Date,y=Weight,fill=Cultivar))+geom_col(position="dodge")
+ggplot(cabbage_exp,aes(x=Date,y=Weight,fill=Cultivar)) + geom_col(position="dodge",colour="black") + scale_fill_brewer(palette="Pastell")
+```
+
+## 3.3 Barre des décomptes : geom_bar()
+
+```{r}
+ggplot(diamonds,aes(x=cut))+ geom_bar()
+
+```
+
+## 3.4 Utilisation des couleurs
+
+```{r}
+library(gcookbook)
+library(ggplot2)
+upc<-subset(uspopchange,rank(Change)>40)
+ggplot(upc,aes(x=Abb,y=Change,fill=Region))+geom_bar(stat="identity")
+ggplot(upc,aes(x=reorder(Abb,Change),y=Change,fill=Region)) +
+  geom_bar(stat="identity",colour="black") +
+  xlab("State")
+
+```
+
+La fonction subset() permet de ne choisir qu'une sélection
+La fonction reorder() permet de ne pas avoir un classement alphabétique sur l'axe des x mais par ordre de grandeur
+
+## 3.5 Couleurs conditionnelles
+
+```{r}
+
+library(gcookbook)
+library(ggplot2)
+csub<-subset(climate,Source="Berkeley" & Year >=1900)
+csub$pos<-csub$Anomaly10y >=0
+ggplot(csub,aes(x=Year,y=Anomaly10y,fill=pos))+
+  geom_bar(stat="identity",position="identity")
+ggplot(csub,aes(x=Year,y=Anomaly10y,fill=pos))+
+  geom_bar(stat="identity",position="identity",colour="black",size=0.25)+
+  scale_fill_manual(values=c("blue","red"),guide=FALSE)
+
+```
+
+Dans le second exemple on veut mettre des contours noir sur les barres d'histogrammes en spécifiant la taille, inverser les couleurs et enlever la légende.
+
+## 3.6 Ajuster la largeur des barres et de l'espacement
+
+La valeur par défaut est 0.9 (ex1).
+Pour les graphes simples : Il est possible de la diminuer (Ex 2) ou de l'aggrandir (ex3).
+Pour les graphes regroupés : par défaut (ex1), en réduction les colonnes (ex2) ou séparant les colonnes regroupées (ex3)
+
+```{r}
+
+library(gcookbook)
+library(ggplot2)
+ggplot(pg_mean,aes(x=group,y=weight)) + geom_bar(stat="identity")
+ggplot(pg_mean,aes(x=group,y=weight)) + geom_bar(stat="identity",width=0.5)
+ggplot(pg_mean,aes(x=group,y=weight)) + geom_bar(stat="identity",width=1)
+ggplot(cabbage_exp,aes(x=Date,y=Weight,fill=Cultivar)) +
+geom_bar(stat="identity", position="dodge")
+ggplot(cabbage_exp,aes(x=Date,y=Weight,fill=Cultivar)) +
+geom_bar(stat="identity",width=0.5, position="dodge")
+ggplot(cabbage_exp,aes(x=Date,y=Weight,fill=Cultivar)) +
+geom_bar(stat="identity",width=0.5, position=position_dodge(0.7))
+
+```
+
+## 3.7 Colonne cumulée
+
+```{r}
+
+library(ggplot2)
+library(gcookbook)
+ggplot(cabbage_exp,aes(x=Date,y=Weight,fill=Cultivar))+geom_bar(stat="identity")
+ggplot(cabbage_exp,aes(x=Date,y=Weight,fill=Cultivar))+geom_bar(stat="identity")+
+guides(fill=guide_legend(reverse=TRUE))
+ggplot(cabbage_exp,aes(x=Date,y=Weight,fill=Cultivar))+
+geom_bar(stat="identity",colour="black")+
+guides(fill=guide_legend(reverse=TRUE))+
+scale_fill_brewer(palette="Pastel1")
+
+```
+
+## 3.8 Colonne cumulée proportionnelle
+
+```{r}
+
+library(ggplot2)
+library(gcookbook)
+library(plyr)
+ce<-ddply(cabbage_exp,"Date",
+transform,percent_weight=Weight/sum(Weight)*100)
+ggplot(ce,aes(x=Date,y=percent_weight,fill=Cultivar))+
+geom_bar(stat="identity")
+ggplot(ce,aes(x=Date,y=percent_weight,fill=Cultivar))+
+geom_bar(stat="identity",colour="black")+
+guides(fill=guide_legend(rverse=TRUE))+
+scale_fill_brewer(palette="Pastel1")
+
+```
+
+## 3.9 Ajouter des annotations sur les barres
+
+```{r}
+
+library(ggplot2)
+library(gcookbook)
+ggplot(cabbage_exp,aes(x=interaction(Date,Cultivar),y=Weight)) +
+  geom_bar(stat="identity",fill="red")+
+  geom_text(aes(label=Weight),vjust=-0.2)
+ggplot(cabbage_exp,aes(x=interaction(Date,Cultivar),y=Weight)) +
+  geom_bar(stat="identity",fill="blue")+
+  geom_text(aes(label=Weight),vjust=1.5,colour="white")
+ggplot(cabbage_exp,aes(x=interaction(Date,Cultivar),y=Weight)) +
+  geom_bar(stat="identity",fill="blue")+
+  geom_text(aes(y=Weight+0.1,label=Weight))
+ggplot(cabbage_exp,aes(x=Date,y=Weight,fill=Cultivar)) +
+  geom_bar(stat="identity",position="dodge")+
+  geom_text(aes(label=Weight),vjust=1.5,colour="white", position=position_dodge(.9),size=3)
+#Ajouter des annotations sur un graphe en cumulé
+ce <- arrange(cabbage_exp, Date, Cultivar)
+ce <- ddply(ce, "Date", transform, label_y=cumsum(Weight)-0.5*Weight)
+ggplot(ce, aes(x=Date, y=Weight, fill=Cultivar)) + 
+  geom_bar(stat="identity") + 
+  geom_text(aes(y=label_y, label=Weight), colour="white") 
+
+```
+
+## 3.10 Cleveland dot geom_point()
+
+```{r}
+
+library(gcookbook)
+library(ggplot2)
+
+#Pour Sélectionner les 25 premières lignes d'un dataframe
+tophit<-tophitters2001[1:25,]
+
+#A l'horizontale
+ggplot(tophit,aes(x=avg,y=reorder(name,avg)))+geom_point()
+
+#A la verticale avec étiquettes inclinées à 60°
+ggplot(tophit,aes(y=avg,x=reorder(name,avg)))+geom_point()+
+  theme(axis.text.x=element_text(angle=60,hjust=1))
+
+#Reorder() n'accepte qu'une clé de tri. Si on veut prendre 2 clés =>
+nameorder<-tophit$name[order(tophit$lg,tophit$avg)]
+tophit$name<-factor(tophit$name,levels=nameorder)
+
+#A l'horizontale avec 2 clés de tri + ajout de segments
+ggplot(tophit,aes(x=avg,y=name))+geom_segment(aes(yend=name),xend=0,colour="grey50")+
+  geom_point(size=3,aes(colour=lg))
+
+#Avec des fenêtres séparées
+ggplot(tophit,aes(x=avg,y=name))+
+  geom_segment(aes(yend=name),xend=0,colour="grey50")+
+  geom_point(size=3,aes(colour=lg))+
+  facet_grid(lg~.,scales="free_y",space="free_y")
+
+```
+
+# Ch 4 - Graphiques en lignes
+
+
+## 4.1 Graphique en ligne basique geom_line()
+
+```{r}
+
+#Graphique de base
+library(ggplot2)
+ggplot(BOD,aes(x=Time,y=demand))+geom_line()
+
+#Si l'axe des X n'est pas numérique convertir en factor
+BOD1<-BOD
+BOD1$Time<-factor(BOD1$Time)
+ggplot(BOD1, aes(x=Time, y=demand, group=1)) + geom_line()
+
+#Pour faire partir les axes à partir de 0
+ggplot(BOD,aes(x=Time,y=demand)) + geom_line() + ylim(0, max(BOD$demand))
+
+#Pour faire partir les axes à partir de 0 avec expand_limits()
+ggplot(BOD,aes(x=Time,y=demand)) + geom_line() + expand_limits(y=0)
+
+```
+
+## 4.2 Graphique en ligne et points geom_line() - geom_point()
+
+```{r}
+#Principes
+ggplot(BOD,aes(x=Time,y=demand)) +geom_line()+ geom_point()
+
+#Utilité pour des observations discontinues
+library(gcookbook)
+library(ggplot2)
+ggplot(worldpop,aes(x=Year,y=Population)) + geom_line() + geom_point()
+
+#En utilisation une échelle logarithmique
+ggplot(worldpop,aes(x=Year,y=Population)) + geom_line() + geom_point() + scale_y_log10()
+
+
+```
+
+## 4.3 Lignes multiples
+
+```{r}
+
+#Pour ajouter 2 lignes avec des couleurs différentes
+library(plyr)
+tg<-ddply(ToothGrowth,c("supp","dose"), summarise, length=mean(len))
+ggplot(tg,aes(x=dose,y=length,colour=supp))+geom_line()
+
+#Pour ajouter 2 lignes avec des formes de lignes différentes
+ggplot(tg,aes(x=dose,y=length,linetype=supp))+geom_line()
+
+#En traitant la valeur de l'axe des x comme une valeur catégorielle et non continue. Nec de group.
+ggplot(tg,aes(x=factor(dose),y=length,colour=supp,group=supp)) + geom_line()
+
+#Pour ajouter des points de formes différentes sur les lignes shape
+ggplot(tg,aes(x=dose,y=length,shape=supp)) + geom_line() + geom_point(size=4)
+
+#Pour ajouter des points de couleurs différentes
+ggplot(tg,aes(x=dose,y=length,fill=supp)) + geom_line() + geom_point(size=4, shape=21)
+
+#Pour éviter que les points ne se superposent
+ggplot(tg,aes(x=dose,y=length,shape=supp)) +
+  geom_line(position=position_dodge(0.2)) +
+  geom_point(position=position_dodge(0.2),size=4)
+
+
+```
+
+## 4.4 Changer les apparences des lignes
+
+Pour déterminer le type de ligne : linetype=solid, dashed, dotted
+
+Pour déterminer l'épaisseur : size= n
+
+Pour déterminer la couleur : colour = "nom_couleur"
+
+Si l'on veut sortir des couleurs de base il faut utiliser scal_colour_brewer() ou scale_colour_manual()
+
+Pour utiliser une même couleur pour toutes les lignes il convient de la spécifier en dehors de aes(). Cela s'applique aussi pour size, linetype, point shape. On peut aussi utiliser un groupe de variables avec group ou colour
+
+Pour la codification des formes, points et couleurs
+https://ggplot2.tidyverse.org/articles/ggplot2-specs.html
+
+```{r}
+library(ggplot2)
+library(plyr)
+
+#Exemple de base
+ggplot(BOD, aes(x=Time, y=demand))+
+  geom_line(linetype="dashed", size=1, colour="blue")
+
+#Pour élargir la palette des couleurs avec scale_colour_brewer()
+tg<-ddply(ToothGrowth,c("supp","dose"),summarise,length=mean(len))
+ggplot(tg,aes(x=dose,y=length,colour=supp))+
+  geom_line()+
+  scale_colour_brewer(palette="Set1")
+
+#En utilisant group
+ggplot(tg,aes(x=dose,y=length,group=supp))+
+  geom_line(colour="darkgreen",size=1.5)
+
+#En utilisant colour
+ggplot(tg,aes(x=dose,y=length,colour=supp))+
+  geom_line(linetype="dashed",size=1.5)+
+  geom_point(shape=22,size=3,fill="white")
+
+```
+
+## 4.5. Changer les apparences des points
+
+Dans geom_point() grâce aux propriétés de size, shape, colour, fill. Les valeurs par défaut : size = 2, shape = solid circle, colour = black , et fill = NULL sauf pour shape 21:25.
+
+Mêmes remarques que pour 4.4 .
+
+```{r}
+library(ggplot2)
+library(plyr)
+ggplot(BOD,aes(x=Time,y=demand))+
+geom_line()+
+geom_point(size=4, shape=22, colour="red", fill="green")
+
+```
+
+## 4.6 Ligne de tendance (geom_area)
+
+On utilise geom_area. Par défaut la couleur est noire. On peut utiliser une autre couleur avec fill et la rendre plus ou moins transparente avec alpha afin de pouvoir voir le cadrillage à travers.
+
+```{r}
+
+library(ggplot2)
+
+sunspotyear<-data.frame(
+	Year=as.numeric(time(sunspot.year)),
+	Sunspots=as.numeric(sunspot.year)
+)
+
+#Graphique de base
+ggplot(sunspotyear,aes(x=Year,y=Sunspots))+
+geom_area()
+
+#En couleur avec un degré de transparence
+ggplot(sunspotyear,aes(x=Year,y=Sunspots))+
+geom_area(colour="black", fill="blue", alpha=.2)
+
+#En utilisant geom_aera() et geom_line() afin d'enlever la ligne de contour
+ggplot(sunspotyear,aes(x=Year,y=Sunspots))+
+  geom_area(fill="blue", alpha=.2)
+geom_line()
+
+```
+
+## 4.7 Lignes de tendances empilées geom_area()
+
+Pour suivre les tendances cumulées de plusieurs variables dans le temps. Par défaut, l'ordre des variables et des légendes est inversée, ce que l'on peut modifier.
+
+```{r}
+
+library(gcookbook)
+library(ggplot2)
+
+#Graphique de base
+ggplot(uspopage, aes(x=Year,y=Thousands,fill=AgeGroup))+
+  geom_area()
+
+#En ajoutant des lignes et augmentant la transparence
+ggplot(uspopage, aes(x=Year,y=Thousands,fill=AgeGroup))+
+  geom_area(colour="black", alpha=.2)
+
+#En renversant la légende, l'ordre des lignes et en utilisant une palette différente
+ggplot(uspopage, aes(x=Year,y=Thousands,fill=AgeGroup))+
+  geom_area(colour="black", size=.2, alpha=.4)+
+  scale_fill_brewer(palette="Blues",breaks=rev(levels(uspopage$AgeGroup)))
+
+ggplot(uspopage, aes(x=Year,y=Thousands,fill=AgeGroup))+
+  geom_area(colour="black", size=.2, alpha=.4)+
+  scale_fill_brewer(palette="Blues")
+
+ggplot(uspopage, aes(x=Year,y=Thousands,fill=AgeGroup),order=desc(AgeGroup))+
+  geom_area(colour=NA, alpha=.4)+
+  scale_fill_brewer(palette="Blues")+
+  geom_line(position="stack", size=.2)
+
+```
+
+## 4.8 Lignes de tendance empilées en %
+
+Dans cet exemple on calcule les pourcentages avec ddply de plyr.
+
+```{r}
+
+library(ggplot2)
+library(plyr)
+library(gcookbook)
+uspopage_prop<-ddply(uspopage,"Year",transform,Percent = Thousands/sum(Thousands)*100)
+ggplot(uspopage_prop,aes(x=Year,y=Percent,fill=AgeGroup))+
+  geom_area(colour="black",alpha=.4)
+
+```
+
+##  4.9 Ajouter des intervalles de confiance
+
+```{r}
+
+library(gcookbook)
+library(ggplot2)
+
+#En faisant une zone d'ombre autour de l'intervalle de confiance
+clim<-subset(climate,Source=="Berkeley",
+             select=c("Year","Anomaly10y","Unc10y"))
+ggplot(clim,aes(x=Year,y=Anomaly10y))+
+  geom_ribbon(aes(ymin=Anomaly10y-Unc10y,ymax=Anomaly10y+Unc10y), alpha=0.2)+
+  geom_line()
+
+#En Utilisant des segments au lieu d'une zône d'ombre
+ggplot(clim,aes(x=Year,y=Anomaly10y))+
+  geom_line(aes(y=Anomaly10y-Unc10y),colour="red",linetype="dotted")+
+  geom_line(aes(y=Anomaly10y+Unc10y),colour="red",linetype="dotted")+
+  geom_line(colour="blue")
+
+```
+
+
+#  Ch 5 -  Nuages de points
+
+
+## 5.1 Nuage de points Graphique de base
+
+Les nuages de points permettent de visualiser les relations entre variables continues. Ils contiennent souvent une ligne de tendance. Pour la lisibilité du graphique il convient de ne pas avoir trop de points.
+
+Pour les formes de point shape. Par défaut 16
+
+Pour la taille des points size. Par défaut 2
+
+```{r}
+
+library(gcookbook)
+library(ggplot2)
+
+#Graphique de base
+ggplot(heightweight,aes(x=ageYear,y=heightIn)) +
+  geom_point()
+
+#En modifiant la taille et la forme des points
+ggplot(heightweight,aes(x=ageYear,y=heightIn)) +
+  geom_point(shape=21, size=1.5)
+
+```
+
+## 5.2 Grouper les données en utilisant Shape ou Color
+
+Si on ne veut pas utiliser les formes et les couleurs proposées par défaut : scale_shape_manual() et scale_colour_brewer()
+
+```{r}
+
+#Par les couleurs
+ggplot(heightweight,aes(x=ageYear,y=heightIn,colour=sex)) + geom_point()
+
+#Par les formes
+ggplot(heightweight,aes(x=ageYear,y=heightIn,shape=sex)) + geom_point()
+
+#En combinant les couleurs et les points
+ggplot(heightweight,aes(x=ageYear,y=heightIn,shape=sex,colour=sex)) + geom_point()
+
+#En utilisant d'autres formes et d'autres couleurs que celles par défaut
+ggplot(heightweight,aes(x=ageYear,y=heightIn,shape=sex,colour=sex)) +
+  geom_point() +
+  scale_shape_manual(values=c(1,2))+
+  scale_colour_brewer(palette="Set1")
+
+```
+
+## 5.3. Utiliser différentes formes p 93
+
+```{r}
+
+library(gcookbook)
+library(ggplot2)
+
+#En choisissant d'autres formes et en séparant les données par couleur
+ggplot(heightweight, aes(x=ageYear,y=heightIn,shape=sex,color=sex))+
+  geom_point(size=3)+
+  scale_shape_manual(values=c(15,17))
+
+
+```
+
+## 5.4 Représenter une variable continue par couleur et taille
+
+```{r}
+
+#Par couleur
+ggplot(heightweight,aes(x=ageYear,y=heightIn,colour=weightLb))+geom_point()
+#Par forme
+ggplot(heightweight,aes(x=ageYear,y=heightIn,size=weightLb))+geom_point()
+#Par couleur et par forme
+ggplot(heightweight,aes(x=ageYear, y=heightIn, size=weightLb, colour=sex))+
+  geom_point(alpha=.5)+
+  scale_size_area()
+
+```
+
+## 5.5 Gérer le nombre excessif de points
+
+Exemple pris avec la base diamands qui compte plus de 6.000 observations et qui devient illisible. Il importe de diminuer la visibilité d'un certain nombre de références
+
+```{r}
+library(ggplot2)
+#graphique de base
+diamonds_sp <- ggplot(diamonds, aes(x = carat, y = price))
+#opacité restant encore assez forte
+diamonds_sp +
+  geom_point(alpha = .1)
+#Plus de transparence
+diamonds_sp +
+  geom_point(alpha = .01)
+#Avec stat_bind2()
+diamonds_sp +
+  stat_bin2d()
+#En ajoutant de la couleur
+diamonds_sp +
+  stat_bin2d(bins = 50) +
+  scale_fill_gradient(low = "lightblue", high = "red", limits = c(0, 6000))
+#En utilisant jitter avec la série ChickWeight)
+ggplot(ChickWeight, aes(x=Time,y=weight))+ geom_point(position="jitter")
+
+#En utilisant geom_boxplot et en spécifiant bien un regroupement sur Time
+ggplot(ChickWeight, aes(x=Time,y=weight))+
+geom_boxplot(aes(group=Time))
+
+```
+
+## 5.6 Ajouter des lignes de régression et des Intervalles de confiance
+
+Utiliser stat_smooth method=lm (linear model). Par défaut stat_smooth calcule un intervalle de confiance à 95% qui peut être modifié. On peut utiliser plusieurs méthodes de régression : la méthode linéaire (lm), polynomiale (loess)
+
+```{r}
+
+library(gcookbook)
+library(ggplot2)
+#Graphique de base
+ggplot(heightweight, aes(x=ageYear,y=heightIn))+
+geom_point()+
+stat_smooth(method=lm)
+
+#Intervalle de confiance à 99%
+ggplot(heightweight, aes(x=ageYear,y=heightIn))+
+geom_point()+
+stat_smooth(method=lm, level=0.55)
+
+#Sans intervalle de confiance
+ggplot(heightweight, aes(x=ageYear,y=heightIn))+
+geom_point()+
+stat_smooth(method=lm, se=FALSE)
+
+#En changeant les couleurs
+ggplot(heightweight, aes(x=ageYear,y=heightIn))+
+geom_point(colour="green")+
+stat_smooth(method=lm, se=FALSE,colour="red")
+
+#En utilisant la méthode polynomiale
+ggplot(heightweight, aes(x=ageYear,y=heightIn))+
+geom_point()+
+stat_smooth(method=loess)
+
+```
+
+
+##  5.9 Ajouter des annotations
+
+Se fait par annotate ( "text", pos xy, label="xxx")
+
+
+```{r}
+
+library(ggplot2)
+library(gcookbook)
+ggplot(heightweight, aes(x=ageYear,y=heightIn))+
+geom_point()+
+stat_smooth(method=lm)+
+annotate("text",x=16.5,y=52, label="r^2==0.42",parse=TRUE)
+
+```
+
+## 5.10 Ajouter des échelles spécifiques
+
+```{r}
+library(ggplot2)
+ggplot(faithful,aes(x=eruptions,y=waiting))+
+geom_point()+
+geom_rug(position="jitter",size=0.2)
+
+```
+
+## 5.11 Mettre des labels sur un graphique en nuage
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+library(dplyr)
+
+#Pour ne nommer que quelques points : annotate
+countries_sub<-countries %>%
+filter(Year==2009 & healthexp > 2000)
+ggplot(countries_sub,aes(x=healthexp,y=infmortality))+
+geom_point()+
+annotate("text",x=4350,y=5.4,label="Canada")+
+annotate("text",x=7400,y=6.8, label="USA")
+
+#Pour annoter tous les points : library(ggrepel)
+library(ggrepel)
+ggplot(countries_sub,aes(x=healthexp,y=infmortality))+
+geom_point()+
+geom_text_repel(aes(label=Name),size=3)
+
+
+```
+
+## 5.12 Graphiques en sphères
+
+
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+library(dplyr)
+
+#Base
+countrylist <- c("Canada", "Ireland", "United Kingdom", "United States",
+  "New Zealand", "Iceland", "Japan", "Luxembourg", "Netherlands", "Switzerland")
+cdat <- countries %>%
+  filter(Year == 2009, Name %in% countrylist)
+ggplot(cdat, aes(x = healthexp, y = infmortality, size = GDP)) +
+geom_point(shape = 21, colour = "black", fill = "cornsilk")+
+scale_size_area(max_size=15)
+
+#Entre deux variables catégorielles
+hec<-HairEyeColor %>% as_tibble() %>%
+group_by(Hair,Eye) %>%
+summarise(count=sum(n))
+ggplot(hec,aes(x=Eye,y=Hair))+
+geom_point(aes(size=count),shape=21,colour="black",fill="cornsilk")+
+geom_text(aes(
+y=as.numeric(as.factor(Hair))-sqrt(count)/34,label=count),vjust=1.3, colour="grey60",size=4)
+
+```
+
+## 5.13 Matrice en nuage de points
+
+```{r}
+
+library(dplyr)
+library(ggplot2)
+library(gcookbook)
+
+#En utilisant la fonction pair()
+c2009<-countries %>% filter(Year==2009) %>%
+select(Name,GDP,laborrate,healthexp,infmortality)
+c2009 %>% select(-Name) %>% pairs()
+#En constuisant des fonctions personnalisées appliquées dans chaque panneau
+panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...) {
+  usr <- par("usr")
+  on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  r <- abs(cor(x, y, use = "complete.obs"))
+  txt <- format(c(r, 0.123456789), digits = digits)[1]
+  txt <- paste(prefix, txt, sep = "")
+  if (missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
+  text(0.5, 0.5, txt, cex =  cex.cor * (1 + r) / 2)
+}
+panel.hist <- function(x, ...) {
+  usr <- par("usr")
+  on.exit(par(usr))
+  par(usr = c(usr[1:2], 0, 1.5) )
+  h <- hist(x, plot = FALSE)
+  breaks <- h$breaks
+  nB <- length(breaks)
+  y <- h$counts
+  y <- y/max(y)
+  rect(breaks[-nB], 0, breaks[-1], y, col = "white", ...)
+}
+
+panel.lm <- function (x, y, col = par("col"), bg = NA, pch = par("pch"),
+                      cex = 1, col.smooth = "black", ...) {
+  points(x, y, pch = pch, col = col, bg = bg, cex = cex)
+  abline(stats::lm(y ~ x),  col = col.smooth, ...)
+}
+c2009 %>%
+  select(-Name) %>%
+  pairs(
+    upper.panel = panel.cor,
+    diag.panel  = panel.hist,
+    lower.panel = panel.smooth,
+    pch = "."
+  )
+```
+
+
+# Ch 6 -  Analyse des distributions
+
+
+## 6.1 Histogramme de base
+
+
+Par défaut la répartition est par 30. On peut la modifier par binwidth. On peut aussi enlever la couleur noire par défaut et ajouter des barres de séparation. Il convient de remarquer cependant que le rendu est meilleur avec le module de base hist()
+
+```{r}
+library(ggplot2)
+binsize <- diff(range(faithful$waiting))/15
+ggplot(faithful, aes(x = waiting)) +
+  geom_histogram(binwidth = binsize, fill = "white", colour = "black")
+
+```
+
+## 6.2 Histogrammes à partir de données groupées
+
+On utilisera le facetage pour chaque groupe.
+C'est par rapport au facetage que la library ggplot2 a un avantage sur le module de base. A la place du facetage, on peut aussi aligner les histogrammes en jouant sur les couleurs. Dans tous les cas il convient de régler manuellement le nombre de découpage ce qui est un inconvénient.
+
+
+```{r}
+library(MASS)
+library(ggplot2)
+ggplot(birthwt, aes(x=bwt))+
+  geom_histogram(fill="white",colour="black")+
+  facet_grid(smoke ~ .)
+
+#Pour permettre d'avoir des graduations différentes : scales="free"
+ggplot(birthwt, aes(x=bwt))+
+  geom_histogram(fill="white",colour="black")+
+  facet_grid(race ~ . , scales = "free")
+
+```
+
+## 6.3 Courbe de densité
+
+
+```{r}
+library(ggplot2)
+ggplot(faithful, aes(x = waiting))+
+  geom_line(stat="density")+
+  expand_limits(y=0)
+
+#Superposition de la courbe de densité et de l'histogramme
+ggplot(faithful, aes(x = waiting, y = ..density..)) +
+  geom_histogram(fill = "cornsilk", colour = "grey60", size = .2) +
+  geom_density() +
+  xlim(35, 105)
+
+```
+## 6.4 Courbes de densité à partir de données multiples
+
+```{r}
+
+library(MASS)
+library(ggplot2)
+library(dplyr)
+birthwt_mod<-birthwt %>% mutate(smoke = as.factor(smoke))
+ggplot(birthwt_mod,aes(x=bwt,colour=smoke)) +
+  geom_density()
+
+#Avec facet_grid
+birthwt_mod$smoke<-recode(birthwt_mod$smoke, '0'='Non fumeur', '1'='Fumeur')
+ggplot(birthwt_mod,aes(x=bwt)) +
+  geom_density()+
+  facet_grid(smoke ~.)
+
+```
+
+## 6.5. Création d'un polygone de fréquence
+
+Un polygone de fréquences affiche les mêmes informations qu'un histogramme.
+
+```{r}
+
+library(ggplot2)
+ggplot(faithful, aes(x=waiting))+
+geom_freqpoly()
+
+#En ajustant le nombre de fréquences à 4
+ggplot(faithful, aes(x=waiting))+
+geom_freqpoly(binwidth=4)
+
+```
+
+## 6.6 Boxplot de base
+
+La boite passe du 25°centile au 75° centile soit l'intervalle inter-quartile IQR avec comme ligne médiane le 50° quartile. Les moustaches sont les valeurs mini et maxi. Les valeurs marquées par des points représentent des données qui sétendent à plus de 1.5 fois l'IQR et sont considérées comme anormales.
+
+```{r}
+library(MASS)
+library(ggplot2)
+ggplot(birthwt, aes(x=factor(race),y=bwt))+
+geom_boxplot()
+
+#Pour faire le diagramme d'un seul groupe il faut fournir une valeur à x
+ggplot(birthwt, aes(x=1,y=bwt))+
+  geom_boxplot()
+
+```
+
+## 6.7 Ajout d'encôches
+
+```{r}
+
+library(MASS)
+library(ggplot2)
+ggplot(birthwt, aes(x=factor(race),y=bwt))+
+  geom_boxplot(notch=TRUE)
+
+```
+
+## 6.8 Ajout de moyenne
+
+Pour les distributions régulière la moyenne et la moyenne seront à peu près identiques. Elles seront par contre différentes pour les distributions asymétriques.
+
+```{r}
+
+library(MASS)
+library(ggplot2)
+ggplot(birthwt, aes(x=factor(race),y=bwt))+
+  geom_boxplot(notch=TRUE)+
+  stat_summary(fun.y="mean", geom="point", shape=23, size=3, fill="white" )
+
+```
+## 6.9 Boite à violon
+
+Moyen plus simple de comparer plusieurs distributions qu'avec les courbes de densité ordinaires car elles sont placées côte à côte. Le tracé du violon est une estimation de la densité du noyau. On n'affiche pas les valeurs aberrantes avec outlier.colour=NA
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+ggplot(heightweight, aes(x=sex,y=heightIn))+
+  geom_violin()+
+  geom_boxplot(width=.1, fill="black", outlier.colour=NA)+
+  stat_summary(fun.y=median, geom="point",fill="white",shape=21,size=2.5)
+
+```
+
+## 6.10 Création d'un tracé de points
+
+Appelé tracé de points de Wilkinson.
+
+```{r}
+
+library(ggplot2)
+library(dplyr)
+library(gcookbook)
+c2009<-countries %>% filter(Year==2009 & healthexp > 2000)
+ggplot(c2009,aes(x=infmortality))+
+  geom_dotplot()
+
+```
+
+## 6.11 Plusieurs tracés de points pour données regroupées
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+ggplot(heightweight, aes(x=sex,y=heightIn))+
+  geom_dotplot(binaxis="y", binwidth=.5, stackdir ="center")
+
+#En les associant avec Boxplot
+ggplot(heightweight, aes(x=sex,y=heightIn))+
+  geom_boxplot(outlier.colour=NA, width=.4)+
+  geom_dotplot(binaxis="y", binwidth=.5, stackdir ="center", fill=NA)
+
+```
+
+## 6.12 Création d'un diagramme de densité
+
+Pour des données bidimensionnelles.
+
+```{r}
+ggplot(faithful,aes(x=eruptions, y=waiting))+
+  geom_point()+
+  stat_density2d()
+
+#Pour faire correspondre la hauteur de la courbe de densité à la hauteur des courbes de niveau
+ggplot(faithful,aes(x=eruptions, y=waiting))+
+  geom_point()+
+  stat_density2d(aes(colour=..level..))
+
+#Par l'utilisation d'un dégradé de couleurs
+ggplot(faithful,aes(x=eruptions, y=waiting))+
+  geom_point()+
+  stat_density2d(aes(fill=..density..),geom="raster", contour=FALSE)
+
+#En association les points et les Couleurs
+ggplot(faithful,aes(x=eruptions, y=waiting))+
+  geom_point()+
+  stat_density2d(aes(alpha=..density..),geom="tile", contour=FALSE)
+
+```
+
+
+# Ch 7 Annotations
+
+
+## 7.1 Ajouter des commentaires
+
+```{r}
+
+library(ggplot2)
+ggplot(faithful, aes(x=eruptions,y=waiting))+
+  geom_point()+
+  annotate("text",x=3,y=48,label="Groupe 1", colour="blue", size=4)+
+  annotate("text",x=4.5,y=66,label="Groupe 2", colour="red", size=3)+
+  annotate("text", x=-Inf, y=Inf, label="Texte aligné haut à gauche", hjust=-.2, vjust=2)+
+  annotate("text",x=mean(range(faithful$eruptions)),y=-Inf,vjust=-0.4, label= "Texte aligné en bas au milieu")
+
+```
+
+## 7.2 Ajouter une formule Mathématique
+
+```{r}
+
+library(ggplot2)
+ggplot(data.frame(x=c(-3,3)),aes(x=x))+
+  stat_function(fun=dnorm)+
+  annotate("text",x=2,y=0.3,parse=TRUE, label="frac(1,sqrt(2*pi))*e^{-x^2/2}")
+
+```
+
+## 7.3 Ajouter des lignes
+
+lignes horizontales : geom_hline()
+
+lignes verticales : geom_vline()
+
+lignes d'angles : geom_abline()
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+ggplot(heightweight, aes(x=ageYear, y=heightIn, colour=sex))+
+geom_point()+
+geom_hline(yintercept=60)+
+geom_vline(xintercept=14)+
+geom_abline(intercept=37.4, slope=1.75)
+
+#Pour ajouter des moyennes
+library(plyr)
+hw_means<-ddply(heightweight, "sex", summarise, heightIn=mean(heightIn))
+ggplot(heightweight, aes(x=ageYear, y=heightIn, colour=sex))+
+geom_point()+
+geom_hline(aes(yintercept=heightIn, colour=sex), data=hw_means,               linetype="dashed", size=1) 
+
+```
+
+## 7.4 Ajouter des segments ou des lignes
+
+
+```{r}
+
+library(ggplot2)
+library(gcookbook)
+ggplot(subset(climate,Source="Berkeley"),aes(x=Year,y=Anomaly10y))+
+geom_line()+
+annotate("segment",x=1950,xend=1980,y=.25,yend=.25)
+
+#Ajouter des flèches
+ggplot(subset(climate,Source="Berkeley"),aes(x=Year,y=Anomaly10y))+
+geom_line()+
+annotate("segment",x=1850,xend=1820,y=-0.6,yend=-1.1, colour="blue",size=2,arrow=arrow())
+ 
+```
+
+## 7.5 Ajouter un rectangle grisé
+
+Va permettre de mettre en évidence une partie du graphique .
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+ggplot(subset(climate, Source=="Berkeley"), aes(x=Year, y=Anomaly10y)) +
+geom_line()+
+annotate("rect", xmin=1970, xmax=2010, ymin=-1, ymax=1, alpha=.1,   fill="red")
+
+```
+
+# Ch 8 Les axes 
+
+
+## 8.1 Renverser les axes
+
+```{r}
+
+library(ggplot2)
+ggplot(PlantGrowth, aes(x=group,y=weight))+geom_boxplot()+coord_flip()
+ 
+ #Pour renverser l'ordre des étiquettes
+ggplot(PlantGrowth, aes(x=group, y=weight)) + geom_boxplot() + coord_flip() + 
+  scale_x_discrete(limits=rev(levels(PlantGrowth$group)))
+
+```
+
+## 8.2 Echelle des axes
+
+```{r}
+
+#Echelle automatique
+gr<-ggplot(PlantGrowth, aes(x=group,y=weight))+geom_boxplot()
+gr
+
+#Echelle de l'axe des y définie
+gr+ylim(0,max(PlantGrowth$weight))
+
+```
+
+## 8.3 Renversement des éléments
+
+
+```{r}
+
+ggplot(PlantGrowth, aes(x=group,y=weight))+geom_boxplot()+scale_y_reverse()
+
+#Pour fixer des limites
+ggplot(PlantGrowth, aes(x=group,y=weight))+geom_boxplot()+scale_y_reverse(limits=c(8,0))
+
+```
+
+## 8.4 Changer l'ordre des éléments
+
+
+```{r}
+ggplot(PlantGrowth, aes(x=group,y=weight))+geom_boxplot()+
+  scale_x_discrete(limits=c("trt1","ctrl","trt2"))
+
+#Pour ne sélectionner que certains éléments
+ggplot(PlantGrowth, aes(x=group,y=weight))+geom_boxplot()+
+  scale_x_discrete(limits=c("ctrl","trt1"))
+
+#Pour modifier l'ordre des éléments
+ggplot(PlantGrowth, aes(x=group,y=weight))+geom_boxplot()+
+  scale_x_discrete(limits=rev(levels(PlantGrowth$group)))
+
+```
+
+## 8.5 Fixer les échelles
+
+```{r}
+library(gcookbook)
+library(ggplot2)
+ggplot(marathon,aes(x=Half,y=Full))+
+  geom_point()+
+  coord_fixed()
+
+```
+
+## 8.6 Placer les échelles
+
+```{r}
+
+library(ggplot2)
+ggplot(PlantGrowth, aes(x=group, y=weight))+geom_boxplot()+
+  scale_y_continuous(breaks=c(4,4.25,4.5,5,6,8))
+
+```
+## 8.7 Enlever les graduations et les étiquettes
+
+```{r}
+library(ggplot2)
+#Pour enlever les étiquettes de l'axe des y
+ggplot(PlantGrowth, aes(x=group, y=weight))+geom_boxplot()+
+  theme(axis.ticks=element_blank(),axis.text.y=element_blank())
+
+#Pour enlever les graduations et les étiquettes  
+ggplot(PlantGrowth, aes(x=group, y=weight))+geom_boxplot()+
+  theme(axis.ticks=element_blank(),axis.text.y=element_blank())+
+  scale_y_continuous(breaks=NULL)
+
+```
+
+## 8.8 Changer le texte des étiquettes
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+
+#Graphique initial
+gr<-ggplot(heightweight,aes(x=ageYear,y=heightIn))+geom_point()
+gr
+
+#Remplacement des étiquettes
+gr+scale_y_continuous(breaks=c(50,56,60,66,72), 
+                      labels=c("Petit","Assez\nPetit","Moyen","Grand","Très\nGrand"))
+
+```
+
+## 8.9 Changer les apparences des étiquettes
+
+
+```{r}
+library(ggplot2)
+#On change seulement les étiquettes
+gr<-ggplot(PlantGrowth, aes(x=group, y=weight))+geom_boxplot()+
+  scale_x_discrete(breaks=c("ctrl","trt1","trt2"),
+                   labels=c("Controle","Traitement 1","Traitement 2"))
+gr
+
+#On incline les étiquettes à 90°
+gr+theme(axis.text.x=element_text(angle=90, hjust=1, vjust=1))
+
+#On incline les étiquettes de 30°
+gr<-gr+theme(axis.text.x=element_text(angle=30, hjust=1, vjust=1))
+gr
+
+#On formate le texte des étiquettes
+gr+theme(axis.text.x=element_text(face="italic",colour="darkred",size=rel(0.9)))
+
+```
+,
+## 8.10 Modifier les titres des axes
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+ggplot(heightweight, aes(x=ageYear,y=heightIn, colour=sex))+
+  geom_point()+
+  labs(x="Age en années", y="Taille en inches")
+
+```
+
+## 8.11 Enlever les titres des axes
+
+
+```{r}
+
+ggplot(PlantGrowth, aes(x=group,y=weight))+
+  geom_boxplot()+
+  xlab(NULL)
+
+```
+
+## 8.12 Formater les titres des axes
+
+
+```{r}
+
+library(gcookbook)
+library(ggplot2)
+ggplot(heightweight, aes(x=ageYear, y=heightIn))+
+  geom_point()+
+  labs(x="Ages\n(années)", y="Taille\n(inches)")+
+  theme(axis.title.x=element_text(face="italic", colour="darkred", size=14))+
+  theme(axis.title.y=element_text(angle=90, face="italic", colour="darkred", size=14))
+
+```
+
+## 8.13 Dessiner des lignes sur les axes
+
+
+```{r}
+
+library(gcookbook)
+library(ggplot2)
+ggplot(heightweight, aes(x=ageYear, y=heightIn))+
+  geom_point()+
+  theme(axis.line=element_line(colour="red"))
+
+#Avec un thême qui a un cadre
+ggplot(heightweight, aes(x=ageYear, y=heightIn))+
+  geom_point()+
+  theme_bw()+
+  theme(panel.border=element_blank(),axis.line=element_line(colour="red"))
+
+```
+
+## 8.14 Utiliser une échelle logarithmique
+
+
+```{r}
+
+##Utiliser échelle log10 sur les 2 axes
+library(MASS)
+library(ggplot2)
+ggplot(Animals, aes(x=body, y=brain, label=rownames(Animals)))+
+  geom_text(size=3)+
+  scale_x_log10()+
+  scale_y_log10()
+
+#Utiliser l'échelle exponentielle sur 1 axe dans grahique financier
+library(gcookbook)
+ggplot(aapl, aes(x=date,y=adj_price))+
+  geom_line()+
+  scale_y_log10(breaks=c(2,10,50,250))
+
+```
+
+
+
+## 8.16 Graphique circulaire
+
+```{r}
+library(gcookbook)
+library(ggplot2)
+ggplot(wind, aes(x = DirCat, fill = SpeedCat)) +
+  geom_histogram(binwidth = 15, boundary = -7.5) +
+  coord_polar() +
+  scale_x_continuous(limits = c(0,360), breaks=seq(0,360, by=45))
+
+```
+
+## 8.17 Axes avec des dates
+
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(scales)
+
+#Ensemble de la série
+ggplot(economics, aes(x = date, y = psavert)) +
+  geom_line()
+
+#Sélection d'une partie
+econ_mod<-economics %>% filter(date >= as.Date("1992-05-01")& date < as.Date("1993-06-01"))
+ggplot(econ_mod,aes(x=date,y=psavert))+geom_line()
+
+#En spécifiant les intervalles et le format de dates
+datebreaks<-seq(as.Date("1992-06-01"), as.Date("1993-06-01"), by="2 month")
+ggplot(econ_mod,aes(x=date,y=psavert))+geom_line()+
+  scale_x_date(breaks=datebreaks, labels=date_format("%m - %Y"))+
+  theme(axis.text.x=element_text(angle=30, hjust=1))
+
+```
+
+# Ch 9 Formatage
+
+
+## 9.1 Titres
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+
+#Titre
+ggplot(heightweight, aes(x=ageYear,y=heightIn))+
+  geom_point()+
+  ggtitle("Age et Taille des Enfants")
+
+#Titre et sous-titre
+ggplot(heightweight, aes(x=ageYear,y=heightIn))+
+  geom_point()+
+  ggtitle("Age et Taille des Enfants", "De 11 à 15 ans")
+
+```
+
+## 9.2  Formater les textes
+
+
+Concerne : 
+  
+  axis.title.x et axis.title.y pour les axes des x et y ; 
+
+axis.ticks, axis.ticks.x et axis.ticks.y pour les étiquettes des axes y et y
+
+legend.title , legend.text pour les légendes
+
+plot.title pour le titre
+
+strip.text, strip.text.x, strip.test.y pour les étiquettes.
+
+
+On peut formater :
+  
+  colour couleur
+
+size taille 
+
+hjust : alignement horizontal (0 = gauche, 0.5 = Milieu, 1 = droit)
+
+vjust : alignement vertical (0 = bas, O.5 = milieu, 1 = haut)
+
+angle = en degré
+
+lineheight : espacement des lignes.
+
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+gr<-ggplot(heightweight, aes(x=ageYear,y=heightIn))+
+  geom_point()+
+  ggtitle("Age et Taille des Enfants")
+
+#Formater le titre
+gr+theme(plot.title=element_text(size=rel(1.5), face="bold.italic", colour="red", hjust=0.5))
+
+```
+
+## 9.3 Thêmes
+
+
+Liste compléte des thêmes : https://ggplot2.tidyverse.org/reference/ggtheme.html
+
+```{r}
+
+library(ggplot2)
+library(gcookbook)
+
+#theme_grey() par defaut
+gr<-ggplot(heightweight, aes(x=ageYear,y=heightIn,colour=sex))+
+  geom_point()
+
+#theme_bw()
+gr+theme_bw()
+
+#theme_minimal()
+gr+theme_minimal()
+
+
+#theme_classic()
+gr+theme_classic()
+
+#theme_void()
+gr+theme_void()
+
+```
+
+## 9.4 Formater un thême
+
+[Tableau 9.3 pour la liste des possibilités de formatage] (https://r-graphics.org/recipe-appearance-theme-modify)
+
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+gr<-ggplot(heightweight, aes(x=ageYear,y=heightIn,colour=sex))+
+  geom_point()
+
+#Pour le panneau général
+gr+theme(
+  panel.grid.major=element_line(colour="red"),
+  panel.grid.minor=element_line(colour="red", linetype="dashed", size=0.2),
+  panel.background=element_rect(fill="lightblue"),
+  panel.border=element_rect(colour="blue", fill=NA, size=2)
+)
+
+gr +
+  ggtitle("Taille et poids des enfants selon l'age") +
+  theme(
+    axis.title.x = element_text(colour = "red", size = 14),
+    axis.text.x  = element_text(colour = "blue"),
+    axis.title.y = element_text(colour = "red", size = 14, angle = 90),
+    axis.text.y  = element_text(colour = "blue"),
+    plot.title = element_text(colour = "red", size = 20, face = "bold")
+  )
+
+#Facetage
+gr+
+  facet_grid(sex ~.)+
+  theme(
+    strip.background=element_rect(fill="pink"),
+    strip.text.y=element_text(size=14, angle=-90, face="bold")
+  )
+
+```
+
+## 9.5 Créer ses propres thèmes
+
+
+
+```{r}
+
+mon_theme<-theme_minimal()+
+  theme(
+    text=element_text(colour="darkred"),
+    axis.title=element_text(size=rel(1.25))
+  )
+library(ggplot2)
+library(gcookbook)
+gr<-ggplot(heightweight, aes(x=ageYear,y=heightIn,colour=sex))+
+  geom_point()
+gr+mon_theme
+
+```
+
+## 9.6 Masquer la grille
+
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+gr<-ggplot(heightweight, aes(x=ageYear,y=heightIn,colour=sex))+
+  geom_point()
+gr+
+  theme(
+    panel.grid.major=element_blank(),
+    panel.grid.minor=element_blank())
+
+```
+
+
+
+## 10.1 Supprimer la légende
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+ggplot(PlantGrowth, aes(x=group, y=weight, fill=group))+
+  geom_boxplot()+
+  guides(fill=FALSE)
+
+```
+
+## 10.2 Changer la position
+
+```{r}
+library(ggplot2)
+library(gcookbook)
+ggplot(PlantGrowth, aes(x=group, y=weight, fill=group))+
+  geom_boxplot()+
+  theme(legend.position="top")
+
+#A l'intérieur du graphe
+ggplot(PlantGrowth, aes(x=group, y=weight, fill=group))+
+  geom_boxplot()+
+  theme(legend.position=c(.8,.3))
+
+```
+
+## 10.3 Modifier l'ordre de la légende
+
+```{r}
+
+library(ggplot2)
+library(gcookbook)
+ggplot(PlantGrowth, aes(x=group, y=weight, fill=group))+
+  geom_boxplot()+
+  scale_fill_discrete(limits=c("trt1","trt2","ctrl"))
+
+```
+
+## 10.4 Renverser l'ordre de la légende
+
+```{r}
+
+library(ggplot2)
+library(gcookbook)
+ggplot(PlantGrowth, aes(x=group, y=weight, fill=group))+
+  geom_boxplot()+
+  guides(fill=guide_legend(reverse=TRUE))
+
+```
+
+## 10.5 Modifier le titre de la légende
+
+```{r}
+
+library(ggplot2)
+library(gcookbook)
+ggplot(PlantGrowth, aes(x=group, y=weight, fill=group))+
+  geom_boxplot()+
+  labs(fill="Essais")
+
+```
+
+## 10.6 Formater le titre de la légende
+
+```{r}
+
+library(ggplot2)
+library(gcookbook)
+ggplot(PlantGrowth, aes(x=group, y=weight, fill=group))+
+  geom_boxplot()+
+  labs(fill="Essais")+
+  theme(legend.title=element_text(colour="red", face="italic"))
+
+```
+
+## 10.7 Supprimer le titre de la légende
+
+```{r}
+
+library(ggplot2)
+library(gcookbook)
+ggplot(PlantGrowth, aes(x=group, y=weight, fill=group))+
+  geom_boxplot()+
+  guides(fill=guide_legend(title=NULL))
+
+```
+
+## 10.8 Modifier les éléments de la légende
+
+```{r}
+
+library(ggplot2)
+library(gcookbook)
+ggplot(PlantGrowth, aes(x=group, y=weight, fill=group))+
+  geom_boxplot()+
+  labs(fill="Essais")+
+  scale_fill_discrete(labels=c("Contrôle","Traitement 1","Traitement 2"))
+
+```
+
+## 10.9 Formater les éléments de la légende
+
+```{r}
+
+library(ggplot2)
+library(gcookbook)
+ggplot(PlantGrowth, aes(x=group, y=weight, fill=group))+
+  geom_boxplot()+
+  labs(fill="Essais")+
+  scale_fill_discrete(labels=c("Contrôle","Traitement 1","Traitement 2"))+
+  theme(legend.text=element_text(face="italic", colour="blue"))
+
+```
+
+# Ch-11 Facets
+
+On peut utiliser facet_grid() ou facet_wrap()
+
+```{r}
+gr<-ggplot(mpg,aes(x=displ, y=hwy))+geom_point()
+
+#Pour des panneaux verticaux
+gr+facet_grid(drv ~.)
+
+#Pour des panneaux horizontaux
+gr+facet_grid(.~ cyl)
+
+#Pour des panneaux verticaux et horizontaux
+gr+facet_grid(drv~cyl)
+
+#Avec facet wrap sans spécifier le nombre lignes et de colonnes
+gr+facet_wrap(~ class)
+
+#En spécifiant le nombre de lignes
+gr+facet_wrap(~ class, nrow=2)
+
+#En spécifiant le nombre de colonnes
+gr+facet_wrap(~ class, ncol=4)
+
+```
+
+## 11.2 Facettes sur différents axes
+
+
+```{r}
+gr<-ggplot(mpg,aes(x=displ, y=hwy))+geom_point()
+
+#En libérant l'axe des y
+gr+facet_grid(drv~cyl, scales="free_y")
+
+#En libérant l'axe des x
+gr+facet_grid(drv~cyl, scales="free_x")
+
+#En libérant l'axe des y avec facet_wrap
+gr+facet_wrap(~ class, ncol=4, scales="free_y")
+
+```
+
+## 11.3 Texte des étiquettes de facet
+
+```{r}
+library(ggplot2)
+library(dplyr)
+mpg_mod<- mpg %>%
+  mutate(drv=recode(drv,"4"="4wd","f"="Front","r"="Rear"))
+ggplot(mpg_mod, aes(x=displ,y=hwy))+
+  geom_point()+
+  facet_grid(drv ~.)
+
+```
+
+## 11.4 Formatage des étiquettes de facette
+
+```{r}
+library(gcookbook)
+library(ggplot2)
+ggplot(cabbage_exp, aes(x=Cultivar, y=Weight))+
+  geom_col()+
+  facet_grid(.~ Date)+
+  theme(strip.text=element_text(face="bold", size=rel(1.5)),
+        strip.background=element_rect(fill="lightblue", colour="black", size=1))
+
+```
+
+## 12.1 Palettes
+
+```{r}
+
+library(RColorBrewer)
+display.brewer.all()
+
+
+```
+
+# Ch13 - Graphiques divers
+
+
+## 13.1 Matrice de corrélation
+
+```{r}
+
+library(ggplot2)
+mcor<-cor(mtcars)
+round(mcor,digits=2)
+library(corrplot) # A tester et installer
+corrplot(mcor)
+#Avec des carrés en ajoutant les valeurs => Tester, simplifier
+col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
+corrplot(mcor, method = "shade", shade.col = NA, tl.col = "black", tl.srt = 45,
+         col = col(200), addCoef.col = "black", cl.pos = "n", order = "AOE")
+```
+
+## 13.4 Graphique en réseau 
+
+Si on veut enlever les étiquettes : vertex.label=NA (mais je ne vois pas l'utilité)
+
+```{r}
+library(igraph)
+gd<-graph(c(1,2,2,3,1,4,5,5,3,6))
+plot(gd)
+
+#Exemple réel
+library(gcookbook)
+g<-graph.data.frame(madmen2, directed=TRUE)
+par(mar=c(0,0,0,0)) # Remove unnecessary margins
+plot(g, layout=layout.fruchterman.reingold, vertex.size=8,
+  edge.arrow.size=0.5)
+
+#Graphe circulaire non orienté
+g <- graph.data.frame(madmen, directed = FALSE)
+par(mar = c(0, 0, 0, 0))  # Remove unnecessary margins
+plot(g, layout = layout.circle, vertex.size = 8)
+
+```
+## 13.5 Etiquetes de texte dans un graphique réseau
+
+```{r}
+library(igraph)
+library(gcookbook)
+m<-madmen[1:nrow(madmen) %% 2 == 1,]
+g<-graph.data.frame(m,directed=FALSE)
+plot(g, layout=layout.fruchterman.reingold,
+verex.size=4, #Etiquettes plus petites
+vertex.label=V(g)$name, #Indiquer les étiquettes
+vertex.label.cex=0.8, #Police plus petite
+vertex.label.dist=0.4, # Decallage des étiquettes
+vertex.label.color="black"
+)
+
+```
+
+## 13.5  Heat map
+
+```{r}
+
+library(ggplot2)
+pres_rating <- data.frame(
+  rating = as.numeric(presidents),
+  year = as.numeric(floor(time(presidents))),
+  quarter = as.numeric(cycle(presidents))
+)
+head(pres_rating)
+p<-ggplot(pres_rating, aes(x=year, y= quarter, fill=rating))
+
+#En utilisant geom_tile()
+p+geom_tile()
+
+#En utilisant geom_raster()
+p+geom_raster()
+
+```
+
+## 13.11 Dendrogramme
+
+```{r}
+library(dplyr)
+library(tidyr)     # For drop_na function
+library(gcookbook) # For the data set
+
+# Set random seed to make random operation below repeatable
+set.seed(392)
+
+c2 <- countries %>%
+  filter(Year == 2009) %>%  # Get data from year 2009
+  drop_na() %>%             # Drop rows that have any NA values
+  sample_n(25)              # Select 25 random rows
+rownames(c2) <- c2$Name
+c2 <- c2[, 4:7]
+c3 <- scale(c2)
+hc <- hclust(dist(c3))
+
+# Make the dendrogram
+plot(hc)
+
+# With text aligned
+plot(hc, hang = -1)
+
+```
+
+## 13.16 Cartes
+
+https://r-graphics.org/recipe-miscgraph-map
+
+```{r}
+#Dessiner la carte des USA avec geom_polygon
+library(maps)
+library(ggplot2)
+states_map <- map_data("state")
+
+ggplot(states_map, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = "white", colour = "black")
+ 
+
+ # Pour avoir la carte du monde
+ monde<-map_data("world")
+ 
+ # Pour avoir la liste des régions du monde
+ sort(unique(monde$region))
+ 
+ #Pour dessiner une portion du monde ea=asie de l'est
+ea<-map_data("world", region = c("Japan", "China","North Korea", "South Korea"))
+ggplot(ea, aes(x=long, y=lat, group=group, fill=region))+
+  geom_polygon()
+
+#Pour dessiner la France
+fr<-map_data("world", region="France")
+ggplot(fr, aes(x=long, y=lat, group=group, fill=region))+
+  geom_polygon()
+
+```
+
+# Ch14 Présentation
+
+## 14.1 Sauvegarder un graphique pdf
+
+Pour sauvegarder un graphique en pdf de 8 X 8 xm
+
+```{r}
+library(ggplot2)
+ggplot(mtcars, aes(x=wt, y=mpg))+
+  geom_point()
+ggsave("gr1.pdf", width=8, height=8, units="cm")
+
+```
+
+## 14.8 Combinaison de plusieurs graphiques
+
+Avec la librairy patchwork. Il peut y avoir d'autres solutions.
+Voir aussi le blog sur l'utilisation de patchwork : https://www.datanovia.com/en/fr/blog/ggplot-multiples-rendus-faciles-par-le-package-r-patchwork/
+  
+```{r}
+library(patchwork)
+library(ggplot2)
+gr1<-ggplot(PlantGrowth, aes(x=weight))+geom_histogram(bins=12)
+plot2 <- ggplot(PlantGrowth, aes(x = group, y = weight, group = group)) +
+  geom_boxplot()
+gr1 + plot2
+
+#En utilisant plot_layout()
+gr1<-ggplot(PlantGrowth, aes(x=weight))+geom_histogram(bins=12)
+gr2 <- ggplot(PlantGrowth, aes(x = group, y = weight, group = group)) +
+  geom_boxplot()
+gr3<-ggplot(PlantGrowth, aes(x = weight, fill = group)) +
+  geom_density(alpha = 0.25)
+gr1+gr2+gr3+plot_layout(ncol=2)
+
+```
+
+# Ch15 Analyse de données 
+
+Voir R data pour les manipulations de données 
+  
+## 15.4 Renommer des colonnes rename()
+
+```{r}
+library(dplyr)
+dtf=ToothGrowth %>% rename(long=len,cat=supp)
+head(dtf)
+
+```
+
+
+
+## 15.8 Niveaux des facteurs
+
+A - Par défaut les factor sont triès alphabétiquement.On peut modifier l'ordre avec levels. On peut modifier l'ordre dès la création du factor. L'ordre des factor a des conséquences sur le mapping graphique
+
+```{r}
+taille<-factor(c("petit","grand","grand","petit","moyen"))
+taille
+factor(taille,levels=c("petit","moyen","grand"))
+#Pour modifier l'ordre dès la création
+taille<-factor(c("petit","grand","grand","petit","moyen"),levels=c("petit","moyen","grand"))
+#Renverser l'ordre
+factor(taille,levels=rev(levels(taille)))
+```
+
+B - En utilisant la fonction fct_relevel() du package forcats
+
+```{r}
+library(forcats)
+fct_relevel(taille,"moyen","petit","grand")
+
+```
+
+## 15.9 Niveaux de factor en fonction des données
+
+```{r}
+
+iss <- InsectSprays
+iss$spray
+iss$spray <- reorder(iss$spray, iss$count, FUN = mean)
+iss$spray
+
+```
+
+## 15.10 Modification du nom des factor
+
+```{r}
+library(forcats)
+taille<-factor(c("petit","grand","grand","petit","moyen"))
+fct_recode(taille, P="petit",G="grand",M="moyen")
+```
+i
+## 15.11 Suppression des factors inutilisés
+
+```{r}
+sizes <- factor(c("small", "large", "large", "small", "medium"))
+sizes <- sizes[1:3]
+sizes
+droplevels(sizes)
+
+```
+
+
+## 15.12 Modification d'un vecteur de caractères
+
+
+```{r}
+library(dplyr)
+taille<-c("petit","grand","grand","petit","moyen")
+recode(taille, "petit"="P", "grand"="G", "moyen"="M")
+```
+
+## 15.12 Recodage d'une variable catégorielle
+
+A - Renommer une variable
+
+```{r}
+library(dplyr)
+pg<-PlantGrowth[c(1,2,11,21,22), ]
+pg
+pg$group=recode(pg$group,"ctrl"="No", "trt1"="Yes", "trt2"="Yes")
+pg
+```
+
+B -  Interaction de 2 colonnes
+
+```{r}
+pg<-PlantGrowth[c(1,2,11,21,22), ]
+pg$interaction<-interaction(pg$weight,pg$group)
+pg
+```
+
+## 15.14 Recodage d'une variable continue en variable catégorielle.
+
+Les bornes sont par défaut ouvertes à gauche et fermées à droite : elles n'incluent pas la valeur la  plus basse, mais elles incluent la valeur la plus élevée. On peut faire l'inverse avec right
+
+```{r}
+pg<-PlantGrowth
+pg$gp<-cut(pg$weight,breaks=c(0,5,6,Inf), labels=c("petit","moyen","grand"))
+head(pg)
+#Utilisation de right
+cut(pg$weight, breaks=c(0,5,6,Inf), right=FALSE)
+```
+## 15.15 Nouvelles colonnes calculées : mutate()
+
+On peut calculer plusieurs colonnes en même temps
+
+```{r}
+library(gcookbook)
+library(dplyr)
+dtf<- heightweight %>%
+  mutate(
+    HauteurCm = round(heightIn * 2.54,1),
+    PoidsKg = round(weightLb / 2.204,1)
+  )%>%
+  rename(Sexe=sex,Ans=ageYear)
+head(dtf)
+```
+Les colonnes sont calculées séquentiellement ce qui signifie qu'on peut faire des calculs sur une colonne calculée
+
+```{r}
+
+dtf<- heightweight  %>%
+  mutate(
+     heightCm  =  heightIn * 2.54,
+    weightKg  =  weightLb / 2.204,
+    bmi  =  weightKg / (heightCm / 100)^2
+  )
+head(dtf)
+
+```
+
+
+## 15.16 Agrégation de données et mutate()
+
+Nécessite de regrouper les données avec group_by puis de calculer les nouvelles colonnes (une ou plusieurs) en utilisant mutate()
+
+
+```{r}
+library(MASS)
+cabbages %>% group_by(Cult, Date) %>% summarise(Weight = mean(HeadWt), VitC = mean(VitC))
+
+cabbages %>% group_by(Cult, Date) %>% summarise(Weight=mean(HeadWt), sd = sd(HeadWt), n=n())
+```
+
+Liste des fonctions de syntèse
+Center: ‘mean()’, ‘median()’
+Spread: ‘sd()’, ‘IQR()’, ‘mad()’
+Range: ‘min()’, ‘max()’, ‘quantile()’
+Position: ‘first()’, ‘last()’, ‘nth()’,
+Count: ‘n()’, ‘n_distinct()’
+Logical: ‘any()’, ‘all()’
+
+Attention aux données manquantes . Pour les éviter na.rm=TRUE pour les variables. Quand il s'agit de colonnes manquantes comme dans le cas où l'on enlève c52 d21 on obtient un graphique en colonne faussé.
+
+```{r}
+library(MASS)
+library(ggplot2)
+cabbages %>% group_by(Cult, Date) %>% summarise(Weight = mean(HeadWt, na.rm = TRUE), VitC = mean(VitC, na.rm = TRUE))
+
+manque<-cabbages %>% filter(!(Cult == "c52" & Date =="d21")) %>% group_by(Cult, Date) %>% summarise(Weight = mean(HeadWt))
+
+ggplot(manque, aes(x = Date ,y = Weight, fill = Cult)) + geom_col(position = "dodge")
+
+```
+
+On peut utiliser les fonctions ungroup() et complete() de tidyr et on obtient un graphique exact en fonction des données existantes.
+
+```{r}
+library(tidyr)
+manque %>% ungroup() %>% complete(Cult,Date) %>% ggplot(aes(x = Date ,y = Weight, fill = Cult)) + geom_col(position = "dodge")
+
+```
+
+
+## 15.18 Agregation avec erreur standard et intervalle de confiance
+
+L'erreur standard (se) est l'ecart type (sd) divisé par la racine carré de l'échantillon 
+
+```{r}
+library(MASS)
+library(dplyr)
+ca <- cabbages %>% group_by(Cult, Date) %>% summarise(Weight = mean(HeadWt), sd = sd(HeadWt),n = n(),  se = sd / sqrt(n))
+ca
+
+```
+
+Les intervalles de confiance sont calculés en utilisant l'erreur standard de la moyenne et les degrés de liberté. La fonction qt() donne les quantile de distribution.  Pour un intervalle de confinace de 95% on utilise un niveau de probalilité de 0.975
+
+```{r}
+ciMul<-qt(0.975,ca$n - 1)
+ca$ci95<-ca$se*ciMul
+ca
+```
+
+
+## 15.19 Convertir données cartésiennes en données indexées
+
+Utiliser gather() de tidyr et combiner éventuellement avec dplyr : 
+
+```{r}
+library(gcookbook)
+library(tidyr)
+library(dplyr)
+
+anthoming
+gather(anthoming,condition, count, expt, ctrl )
+
+drunk
+drunk %>% gather(age, count, "0-29","30-39","40-49","50-59","60+") 
+
+corneas
+co <- corneas %>% mutate(id = 1:nrow(corneas)) %>% gather("situation","nbr",affected,notaffected)
+head(co)
+```
+
+
+## 15.20 Données indexées -> Données cartésiennes
+
+Utiliser spread() de tidyr :
+
+Cela permet de développer une colonne indexée.
+
+```{r}
+library(tidyr)
+library(gcookbook)
+plum
+spread(plum, survival, count)
+```
+
+Si on veut développer deux colonnes indexées, il faut d'abord les réunir en une colonne indexée et développer cette colonne avec tous les items
+
+```{r}
+plum %>% unite(length_survival, length, survival) %>% spread(length_survival, count)
+```
+
+## 15.21 Série temporelle -> heures et valeurs
+
+On souhaite convertir une série chronologique en vecteurs numériques représentant l'heure et les valeurs à chaque instant. Il faut utiliser time() puis les convertir as.numeric()
+
+```{r}
+nhtemp
+nht<-data.frame(year = as.numeric(time(nhtemp)), temp = as.numeric(nhtemp))
+ggplot(nht, aes(x=year, y=temp))+geom_line(colour="red")+geom_smooth()
+```
+
