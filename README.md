@@ -1,2 +1,2 @@
 # gitdoc
-Documentation diverse sur git et git-hub
+Résumés de documentation technique en fichier .rmd pour dépot de version source
